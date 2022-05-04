@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // Layers
 enum layers {
     L_QWERTY,
+    L_COLMAK,
     L_LOWER,
     L_RAISE,
     L_MOUSE,
@@ -35,6 +36,8 @@ enum custom_keycodes {
   MO_LOWR = SAFE_RANGE, // the start of custom keycords which is defined in quantum_keycodes.h.
   MO_RAIS,
   MO_MOUS,
+  TG_QWRT,
+  TG_CLMK,
   CUSTOM_KEYCODE_RANGE, // the end of custom keycordes.
 };
 
@@ -46,6 +49,19 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
       KC_LCTL,    KC_A,    KC_S,    KC_D,    KC_F,    KC_G,                         KC_H,    KC_J,    KC_K,    KC_L, KC_SCLN,  KC_ENT,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       KC_LALT,    KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,                         KC_N,    KC_M, KC_COMM,  KC_DOT, KC_SLSH, KC_BSLS,
+  //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
+                                          KC_LGUI, KC_LSFT,  KC_SPC,    MO_RAIS, MO_LOWR, MO_MOUS
+                                      //`--------------------------'  `--------------------------'
+
+  ),
+
+  [L_COLMAK] = LAYOUT_split_3x6_3(
+  //,-----------------------------------------------------.                    ,-----------------------------------------------------.
+       KC_TAB,    KC_Q,    KC_W,    KC_F,    KC_P,    KC_G,                         KC_J,    KC_L,    KC_U,    KC_Y, KC_SCLN, KC_MINS,
+  //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
+      KC_LCTL,    KC_A,    KC_R,    KC_S,    KC_T,    KC_D,                         KC_H,    KC_N,    KC_E,    KC_I,    KC_O,  KC_ENT,
+  //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
+      KC_LALT,    KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,                         KC_K,    KC_M, KC_COMM,  KC_DOT, KC_SLSH, KC_BSLS,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
                                           KC_LGUI, KC_LSFT,  KC_SPC,    MO_RAIS, MO_LOWR, MO_MOUS
                                       //`--------------------------'  `--------------------------'
@@ -90,11 +106,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
   [L_ADJUST] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+      XXXXXXX, TG_QWRT, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+      XXXXXXX, XXXXXXX, XXXXXXX, TG_CLMK, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
                                           XXXXXXX, XXXXXXX, XXXXXXX,    XXXXXXX, XXXXXXX, XXXXXXX
                                       //`--------------------------'  `--------------------------'
@@ -137,6 +153,18 @@ void toggle_layer(void) {
     layer_on(L_ADJUST);
   else
     layer_off(L_ADJUST);
+
+  if (is_memorized(TG_QWRT)) {
+    layer_clear();
+    default_layer_set(1UL<<L_QWERTY);
+    layer_on(L_QWERTY);
+  }
+
+  if (is_memorized(TG_CLMK)) {
+    layer_clear();
+    default_layer_set(1UL<<L_COLMAK);
+    layer_on(L_COLMAK);
+  }
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
@@ -144,6 +172,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   case MO_LOWR:
   case MO_RAIS:
   case MO_MOUS:
+  case TG_QWRT:
+  case TG_CLMK:
     memorize(keycode, record->event.pressed);
     toggle_layer();
     return false;
