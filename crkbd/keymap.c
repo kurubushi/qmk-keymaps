@@ -33,15 +33,13 @@ enum layers {
 };
 
 // Key codes
-enum custom_keycodes {
-  MO_LOWR = SAFE_RANGE, // the start of custom keycords which is defined in quantum_keycodes.h.
-  MO_RAIS,
-  MO_MOUS,
-  TG_QWRT,
-  TG_DVRK,
-  TG_CLMK,
-  CUSTOM_KEYCODE_RANGE, // the end of custom keycordes.
-};
+#define MO_LOWR MO(L_LOWER)
+#define MO_RAIS MO(L_RAISE)
+#define MO_MOUS MO(L_MOUSE)
+#define MO_AJST MO(L_ADJUST)
+#define DF_QWRT DF(L_QWERTY)
+#define DF_DVRK DF(L_DVORAK)
+#define DF_CLMK DF(L_COLMAK)
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [L_QWERTY] = LAYOUT_split_3x6_3(
@@ -91,7 +89,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       _______, KC_TILD,  KC_GRV, KC_DQUO, KC_QUOT, XXXXXXX,                      KC_PLUS, KC_LCBR, KC_LBRC, KC_RBRC, KC_RCBR, KC_BSLS,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                          _______, _______, _______,    _______, _______, _______
+                                          _______, _______, _______,    MO_AJST, _______, _______
                                       //`--------------------------'  `--------------------------'
   ),
 
@@ -103,7 +101,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       _______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      KC_HOME, KC_PGDN, KC_PGUP,  KC_END, KC_CAPS, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                          _______, _______, _______,    _______, _______, _______
+                                          _______, _______, _______,    _______, MO_AJST, _______
                                       //`--------------------------'  `--------------------------'
   ),
 
@@ -121,84 +119,13 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
   [L_ADJUST] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-      XXXXXXX, TG_QWRT, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+      XXXXXXX, DF_QWRT, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX, XXXXXXX, XXXXXXX, TG_DVRK, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+      XXXXXXX, XXXXXXX, XXXXXXX, DF_DVRK, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX, XXXXXXX, XXXXXXX, TG_CLMK, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+      XXXXXXX, XXXXXXX, XXXXXXX, DF_CLMK, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
                                           XXXXXXX, XXXXXXX, XXXXXXX,    XXXXXXX, XXXXXXX, XXXXXXX
                                       //`--------------------------'  `--------------------------'
   )
 };
-
-// 何の custom_keycodes が押されているかをメモ
-bool memo[CUSTOM_KEYCODE_RANGE - SAFE_RANGE];
-
-bool is_memorized(uint16_t keycode) {
-  if (keycode >= SAFE_RANGE || keycode < CUSTOM_KEYCODE_RANGE)
-    return memo[keycode - SAFE_RANGE];
-  return false;
-}
-
-void memorize(uint16_t keycode, bool is_pressed) {
-  if (keycode >= SAFE_RANGE || keycode < CUSTOM_KEYCODE_RANGE)
-    memo[keycode - SAFE_RANGE] = is_pressed;
-  return;
-}
-
-// memo に応じて layer を変化
-void toggle_layer(void) {
-  if (is_memorized(MO_LOWR))
-    layer_on(L_LOWER);
-  else
-    layer_off(L_LOWER);
-
-  if (is_memorized(MO_RAIS))
-    layer_on(L_RAISE);
-  else
-    layer_off(L_RAISE);
-
-  if (is_memorized(MO_MOUS))
-    layer_on(L_MOUSE);
-  else
-    layer_off(L_MOUSE);
-
-  if (layer_state_is(L_LOWER) && layer_state_is(L_RAISE))
-    layer_on(L_ADJUST);
-  else
-    layer_off(L_ADJUST);
-
-  if (is_memorized(TG_QWRT)) {
-    layer_clear();
-    default_layer_set(1UL<<L_QWERTY);
-    layer_on(L_QWERTY);
-  }
-
-  if (is_memorized(TG_DVRK)) {
-    layer_clear();
-    default_layer_set(1UL<<L_DVORAK);
-    layer_on(L_DVORAK);
-  }
-
-  if (is_memorized(TG_CLMK)) {
-    layer_clear();
-    default_layer_set(1UL<<L_COLMAK);
-    layer_on(L_COLMAK);
-  }
-}
-
-bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-  switch (keycode) {
-  case MO_LOWR:
-  case MO_RAIS:
-  case MO_MOUS:
-  case TG_QWRT:
-  case TG_DVRK:
-  case TG_CLMK:
-    memorize(keycode, record->event.pressed);
-    toggle_layer();
-    return false;
-  }
-  return true;
-}
