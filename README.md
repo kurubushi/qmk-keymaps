@@ -11,6 +11,6 @@ Compile and flash:
 
 ```
 $ git clone git@kurubushi/qmk-keymaps.git
-$ cp -pr qmk-keymaps/crkbd "$(qmk env QMK_HOME)/keyboards/crkbd/keymaps/mymap"
+$ ln -s "$(pwd)/qmk-keymaps/crkbd" "$(qmk env QMK_HOME)/keyboards/crkbd/keymaps/mymap"
 $ qmk flash -kb crkbd -km mymap
 ```
