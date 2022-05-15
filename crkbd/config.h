@@ -31,3 +31,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MOUSEKEY_WHEEL_DELAY         0
 #define MOUSEKEY_WHEEL_MAX_SPEED     1
 #define MOUSEKEY_WHEEL_TIME_TO_MAX  20
+
+// 右手用
+//#define MASTER_RIGHT
