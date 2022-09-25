@@ -1,0 +1,5 @@
+MOUSEKEY_ENABLE  = yes  # Mouse keys
+BACKLIGHT_ENABLE = no
+RGBLIGHT_ENABLE  = no
+AUDIO_ENABLE     = no
+LTO_ENABLE       = yes
