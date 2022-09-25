@@ -30,6 +30,7 @@ enum layers {
     L_LOWER,
     L_RAISE,
     L_MOUSE,
+    L_MOUSEMAC,
     L_ADJUST,
 };
 
@@ -37,12 +38,22 @@ enum layers {
 #define MO_LOWR MO(L_LOWER)
 #define MO_RAIS MO(L_RAISE)
 #define MO_MOUS MO(L_MOUSE)
+#define MO_MMAC MO(L_MOUSEMAC)
 #define MO_AJST MO(L_ADJUST)
 #define DF_QWRT DF(L_QWERTY)
 #define DF_QMAC DF(L_QWEMAC)
 #define DF_DVRK DF(L_DVORAK)
 #define DF_CLMK DF(L_COLMAK)
 #define KC_CTAL LCTL(KC_LALT)
+#define OSM_CTL OSM(MOD_LCTL)
+#define OSM_ALT OSM(MOD_LALT)
+#define OSM_GUI OSM(MOD_LGUI)
+#define OSM_SFT OSM(MOD_LSFT)
+
+enum custom_keycodes {
+  OSM_CLR = SAFE_RANGE,
+  CUSTOM_KEYCODE_RANGE // the end of custom_keycodes
+};
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [L_QWERTY] = LAYOUT_split_3x6_3(
@@ -66,7 +77,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       KC_LGUI,    KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,                         KC_N,    KC_M, KC_COMM,  KC_DOT, KC_SLSH, KC_CTAL,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                          KC_LALT, KC_LSFT,  KC_SPC,    MO_RAIS, MO_LOWR, MO_MOUS
+                                          KC_LALT, KC_LSFT,  KC_SPC,    MO_RAIS, MO_LOWR, MO_MMAC
                                       //`--------------------------'  `--------------------------'
 
   ),
@@ -125,11 +136,23 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
       XXXXXXX, XXXXXXX, XXXXXXX, KC_MS_U, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, KC_WH_U, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX, XXXXXXX, KC_MS_L, KC_MS_D, KC_MS_R, XXXXXXX,                      XXXXXXX, KC_BTN1, KC_BTN3, KC_BTN2, XXXXXXX, XXXXXXX,
+      OSM_CTL, XXXXXXX, KC_MS_L, KC_MS_D, KC_MS_R, XXXXXXX,                      XXXXXXX, KC_BTN1, KC_BTN3, KC_BTN2, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, KC_WH_D, XXXXXXX, XXXXXXX, XXXXXXX,
+      OSM_ALT, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, KC_WH_D, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                          XXXXXXX, XXXXXXX, XXXXXXX,    XXXXXXX, XXXXXXX, XXXXXXX
+                                          OSM_GUI, OSM_SFT, OSM_CLR,    XXXXXXX, XXXXXXX, XXXXXXX
+                                      //`--------------------------'  `--------------------------'
+  ),
+
+  [L_MOUSEMAC] = LAYOUT_split_3x6_3(
+  //,-----------------------------------------------------.                    ,-----------------------------------------------------.
+      XXXXXXX, XXXXXXX, XXXXXXX, KC_MS_U, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, KC_WH_U, XXXXXXX, XXXXXXX, XXXXXXX,
+  //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
+      OSM_CTL, XXXXXXX, KC_MS_L, KC_MS_D, KC_MS_R, XXXXXXX,                      XXXXXXX, KC_BTN1, KC_BTN3, KC_BTN2, XXXXXXX, XXXXXXX,
+  //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
+      OSM_GUI, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, KC_WH_D, XXXXXXX, XXXXXXX, XXXXXXX,
+  //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
+                                          OSM_ALT, OSM_SFT, OSM_CLR,    XXXXXXX, XXXXXXX, XXXXXXX
                                       //`--------------------------'  `--------------------------'
   ),
 
@@ -146,7 +169,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   )
 };
 
-void set_persistent_default_layer(uint16_t keycode) {
+void handle_persistent_default_layer(uint16_t keycode) {
   if (!(get_mods() & MOD_MASK_SHIFT)) {
     return;
   }
@@ -158,12 +181,19 @@ void set_persistent_default_layer(uint16_t keycode) {
     // https://github.com/qmk/qmk_firmware/blob/0.18.8/quantum/quantum_keycodes.h#L808-L809
     uint8_t layer = keycode & 0xFF;
     set_single_persistent_default_layer(layer);
-    break;
+  }
+}
+
+void handle_oneshot_modifiers(uint16_t keycode) {
+  switch (keycode) {
+  case OSM_CLR:
+    clear_oneshot_mods();
   }
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-  set_persistent_default_layer(keycode);
+  handle_persistent_default_layer(keycode);
+  handle_oneshot_modifiers(keycode);
 
   return true;
 };
