@@ -171,6 +171,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 
 void handle_persistent_default_layer(uint16_t keycode) {
+  uint8_t layer;
+
   if (!(get_mods() & MOD_MASK_SHIFT)) {
     return;
   }
@@ -180,7 +182,7 @@ void handle_persistent_default_layer(uint16_t keycode) {
     // ref.
     // https://github.com/qmk/qmk_firmware/blob/0.18.8/quantum/quantum_keycodes.h#L46-L47
     // https://github.com/qmk/qmk_firmware/blob/0.18.8/quantum/quantum_keycodes.h#L808-L809
-    uint8_t layer = keycode & 0xFF;
+    layer = keycode & 0xFF;
     set_single_persistent_default_layer(layer);
   }
 }
