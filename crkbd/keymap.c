@@ -335,7 +335,7 @@ bool handle_jis_keycode(uint16_t keycode, keyrecord_t *record) {
     send_code(KC_INT3, record);
     return false;
   case KC_SCLN:
-    if (get_mods() & MOD_MASK_SHIFT) { // means `:` key
+    if (get_mods() & MOD_MASK_SHIFT) { // means :
       send_code_without_shift(KC_QUOT, record);
       return false;
     }
