@@ -53,6 +53,8 @@ enum custom_keycodes {
   KC_MOD4,
   MAC_ON,
   MAC_OFF,
+  JIS_ON,
+  JIS_OFF,
   CUSTOM_KEYCODE_RANGE // the end of custom_keycodes
 };
 
@@ -136,7 +138,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
       QK_BOOT, MAC_OFF,  MAC_ON, XXXXXXX, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      DB_TOGG, XXXXXXX, XXXXXXX, DF_DVRK, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+      DB_TOGG, JIS_OFF,  JIS_ON, DF_DVRK, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
        EE_CLR, XXXXXXX, XXXXXXX, DF_CLMK, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
@@ -147,9 +149,10 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 typedef struct {
   bool macos_mode;
+  bool jis_mode;
 } settings_t;
 
-settings_t settings = { false };
+settings_t settings = { false, false };
 
 void send_code(uint16_t keycode, keyrecord_t *record) {
   if (record->event.pressed) {
@@ -161,6 +164,10 @@ void send_code(uint16_t keycode, keyrecord_t *record) {
 }
 
 void send_code_with_shift(uint16_t keycode, keyrecord_t *record) {
+  // MEMO: `send_code` does not seem to recognize KC_EXLM and S(KC_1) as Shift+1.
+  // `send_code(KC_EXLM)` seems to send just KC_1 without pressed and released Shift key.
+  // Therefore, I defined `send_code_without_shift` which sends pressed Shift, keycode, and released Shift.
+
   bool pressed = get_mods() & MOD_BIT(KC_LSFT);
 
   if (!pressed) register_code(KC_LSFT);
@@ -249,6 +256,89 @@ bool handle_settings_change(uint16_t keycode, keyrecord_t *record) {
   case MAC_OFF:
     settings.macos_mode = false;
     return false;
+  case JIS_ON:
+    settings.jis_mode = true;
+    return false;
+  case JIS_OFF:
+    settings.jis_mode = false;
+    return false;
+  }
+
+  return true;
+}
+
+bool handle_jis_keycode(uint16_t keycode, keyrecord_t *record) {
+  if (!settings.jis_mode) {
+    return true;
+  }
+
+  switch (keycode) {
+  case KC_TILD:
+    send_code_with_shift(KC_EQL, record); // means +
+    return false;
+  case KC_GRV:
+    send_code_with_shift(KC_LBRC, record); // means {
+    return false;
+  case KC_AT:
+    send_code(KC_LBRC, record);
+    return false;
+  case KC_CIRC:
+    send_code(KC_EQL, record);
+    return false;
+  case KC_AMPR:
+    send_code_with_shift(KC_6, record); // means ^
+    return false;
+  case KC_ASTR:
+    send_code_with_shift(KC_QUOT, record); // means "
+    return false;
+  case KC_LPRN:
+    send_code_with_shift(KC_8, record); // means *
+    return false;
+  case KC_RPRN:
+    send_code_with_shift(KC_9, record); // means (
+    return false;
+  case KC_MINS:
+    if (get_mods() & MOD_MASK_SHIFT) { // means _
+      send_code_with_shift(KC_INT1, record);
+      return false;
+    }
+    break;
+  case KC_PLUS:
+    send_code_with_shift(KC_SCLN, record); // means :
+    return false;
+  case KC_EQL:
+    send_code_with_shift(KC_MINS, record); // means _
+    return false;
+  case KC_LCBR:
+    send_code_with_shift(KC_RBRC, record); // means }
+    return false;
+  case KC_LBRC:
+    send_code(KC_RBRC, record);
+    return false;
+  case KC_RCBR:
+    send_code_with_shift(KC_BSLS, record); // means |
+    return false;
+  case KC_RBRC:
+    send_code(KC_BSLS, record);
+    return false;
+  case KC_PIPE:
+    send_code_with_shift(KC_INT3, record);
+    return false;
+  case KC_BSLS:
+    send_code(KC_INT3, record);
+    return false;
+  case KC_SCLN:
+    if (get_mods() & MOD_MASK_SHIFT) { // means `:` key
+      send_code_without_shift(KC_QUOT, record);
+      return false;
+    }
+    break;
+  case KC_DQUO:
+    send_code_with_shift(KC_2, record); // means @
+    return false;
+  case KC_QUOT:
+    send_code_with_shift(KC_7, record); // means &
+    return false;
   }
 
   return true;
@@ -261,6 +351,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   process_continued &= handle_oneshot_modifiers(keycode, record);
   process_continued &= handle_custom_modifiers(keycode, record);
   process_continued &= handle_settings_change(keycode, record);
+  process_continued &= handle_jis_keycode(keycode, record);
 
   return process_continued;
 };
