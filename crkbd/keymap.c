@@ -160,12 +160,35 @@ void send_code(uint16_t keycode, keyrecord_t *record) {
   }
 }
 
-void handle_persistent_default_layer(uint16_t keycode) {
-  uint8_t layer;
+void send_code_with_shift(uint16_t keycode, keyrecord_t *record) {
+  bool pressed = get_mods() & MOD_BIT(KC_LSFT);
+
+  if (!pressed) register_code(KC_LSFT);
+  send_code(keycode, record);
+  if (!pressed) unregister_code(KC_LSFT);
+}
+
+void send_code_without_shift(uint16_t keycode, keyrecord_t *record) {
+  bool left_pressed = get_mods() & MOD_BIT(KC_LSFT);
+  bool right_pressed = get_mods() & MOD_BIT(KC_RSFT);
+
+  if (left_pressed) unregister_code(KC_LSFT);
+  if (right_pressed) unregister_code(KC_RSFT);
+  send_code(keycode, record);
+  if (left_pressed) register_code(KC_LSFT);
+  if (right_pressed) register_code(KC_RSFT);
+}
+
+bool handle_persistent_default_layer(uint16_t keycode, keyrecord_t *record) {
+  if (!record->event.pressed) {
+    return true;
+  }
 
   if (!(get_mods() & MOD_MASK_SHIFT)) {
-    return;
+    return true;
   }
+
+  uint8_t layer;
 
   switch (keycode) {
   case QK_DEF_LAYER ... QK_DEF_LAYER_MAX:
@@ -174,10 +197,17 @@ void handle_persistent_default_layer(uint16_t keycode) {
     // https://github.com/qmk/qmk_firmware/blob/0.18.8/quantum/quantum_keycodes.h#L808-L809
     layer = keycode & 0xFF;
     set_single_persistent_default_layer(layer);
+    return false;
   }
+
+  return true;
 }
 
-bool handle_oneshot_modifiers(uint16_t keycode) {
+bool handle_oneshot_modifiers(uint16_t keycode, keyrecord_t *record) {
+  if (!record->event.pressed) {
+    return true;
+  }
+
   switch (keycode) {
   case OS_CLR:
     clear_oneshot_mods();
@@ -227,8 +257,8 @@ bool handle_settings_change(uint16_t keycode, keyrecord_t *record) {
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   bool process_continued = true;
 
-  handle_persistent_default_layer(keycode);
-  process_continued &= handle_oneshot_modifiers(keycode);
+  process_continued &= handle_persistent_default_layer(keycode, record);
+  process_continued &= handle_oneshot_modifiers(keycode, record);
   process_continued &= handle_custom_modifiers(keycode, record);
   process_continued &= handle_settings_change(keycode, record);
 
