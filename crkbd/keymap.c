@@ -42,8 +42,6 @@ enum layers {
 #define DF_CLMK DF(L_COLMAK)
 #define KC_CTAL LCTL(KC_LALT)
 #define OS_CTL  OSM(MOD_LCTL)
-#define OS_MOD1 OSM(KC_MOD1)
-#define OS_MOD4 OSM(KC_MOD4)
 #define OS_SFT  OSM(MOD_LSFT)
 #define OS_CTAL OSM(MOD_LCTL | MOD_LALT)
 
@@ -51,6 +49,8 @@ enum custom_keycodes {
   OS_CLR = SAFE_RANGE,
   KC_MOD1,
   KC_MOD4,
+  OS_MOD1,
+  OS_MOD4,
   MAC_ON,
   MAC_OFF,
   JIS_ON,
@@ -186,6 +186,17 @@ void send_code_without_shift(uint16_t keycode, keyrecord_t *record) {
   if (right_pressed) register_code(KC_RSFT);
 }
 
+uint16_t get_custom_modifier(uint16_t keycode) {
+  switch (keycode) {
+  case KC_MOD1:
+    return settings.macos_mode ? KC_LGUI : KC_LALT;
+  case KC_MOD4:
+    return settings.macos_mode ? KC_LALT : KC_LGUI;
+  default:
+    return 0;
+  }
+}
+
 bool handle_persistent_default_layer(uint16_t keycode, keyrecord_t *record) {
   if (!record->event.pressed) {
     return true;
@@ -219,29 +230,25 @@ bool handle_oneshot_modifiers(uint16_t keycode, keyrecord_t *record) {
   case OS_CLR:
     clear_oneshot_mods();
     return false;
+  case OS_MOD1:
+    set_oneshot_mods(MOD_BIT(get_custom_modifier(KC_MOD1)));
+    return false;
+  case OS_MOD4:
+    set_oneshot_mods(MOD_BIT(get_custom_modifier(KC_MOD4)));
+    return false;
   }
 
   return true;
 }
 
 bool handle_custom_modifiers(uint16_t keycode, keyrecord_t *record) {
-  uint16_t code = 0;
-
-  switch (keycode) {
-  case KC_MOD1:
-    code = settings.macos_mode ? KC_LGUI : KC_LALT;
-    break;
-  case KC_MOD4:
-    code = settings.macos_mode ? KC_LALT : KC_LGUI;
-    break;
+  uint16_t mod_code = get_custom_modifier(keycode);
+  if (!mod_code) {
+    return true;
   }
 
-  if (code) {
-    send_code(code, record);
-    return false;
-  }
-
-  return true;
+  send_code(mod_code, record);
+  return false;
 }
 
 bool handle_settings_change(uint16_t keycode, keyrecord_t *record) {
