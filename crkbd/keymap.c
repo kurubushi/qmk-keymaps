@@ -24,13 +24,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // Layers
 enum layers {
     L_QWERTY,
-    L_QWEMAC,
     L_DVORAK,
     L_COLMAK,
     L_LOWER,
     L_RAISE,
     L_MOUSE,
-    L_MOUSEMAC,
     L_ADJUST,
 };
 
@@ -38,21 +36,23 @@ enum layers {
 #define MO_LOWR MO(L_LOWER)
 #define MO_RAIS MO(L_RAISE)
 #define MO_MOUS MO(L_MOUSE)
-#define MO_MMAC MO(L_MOUSEMAC)
 #define MO_AJST MO(L_ADJUST)
 #define DF_QWRT DF(L_QWERTY)
-#define DF_QMAC DF(L_QWEMAC)
 #define DF_DVRK DF(L_DVORAK)
 #define DF_CLMK DF(L_COLMAK)
 #define KC_CTAL LCTL(KC_LALT)
 #define OS_CTL  OSM(MOD_LCTL)
-#define OS_ALT  OSM(MOD_LALT)
-#define OS_GUI  OSM(MOD_LGUI)
+#define OS_MOD1 OSM(KC_MOD1)
+#define OS_MOD4 OSM(KC_MOD4)
 #define OS_SFT  OSM(MOD_LSFT)
 #define OS_CTAL OSM(MOD_LCTL | MOD_LALT)
 
 enum custom_keycodes {
   OS_CLR = SAFE_RANGE,
+  KC_MOD1,
+  KC_MOD4,
+  MAC_ON,
+  MAC_OFF,
   CUSTOM_KEYCODE_RANGE // the end of custom_keycodes
 };
 
@@ -63,22 +63,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       KC_LCTL,    KC_A,    KC_S,    KC_D,    KC_F,    KC_G,                         KC_H,    KC_J,    KC_K,    KC_L, KC_SCLN,  KC_ENT,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      KC_LALT,    KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,                         KC_N,    KC_M, KC_COMM,  KC_DOT, KC_SLSH, KC_CTAL,
+      KC_MOD1,    KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,                         KC_N,    KC_M, KC_COMM,  KC_DOT, KC_SLSH, KC_CTAL,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                          KC_LGUI, KC_LSFT,  KC_SPC,    MO_RAIS, MO_LOWR, MO_MOUS
-                                      //`--------------------------'  `--------------------------'
-
-  ),
-
-  [L_QWEMAC] = LAYOUT_split_3x6_3(
-  //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-       KC_TAB,    KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,                         KC_Y,    KC_U,    KC_I,    KC_O,   KC_P,  KC_MINS,
-  //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      KC_LCTL,    KC_A,    KC_S,    KC_D,    KC_F,    KC_G,                         KC_H,    KC_J,    KC_K,    KC_L, KC_SCLN,  KC_ENT,
-  //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      KC_LGUI,    KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,                         KC_N,    KC_M, KC_COMM,  KC_DOT, KC_SLSH, KC_CTAL,
-  //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                          KC_LALT, KC_LSFT,  KC_SPC,    MO_RAIS, MO_LOWR, MO_MMAC
+                                          KC_MOD4, KC_LSFT,  KC_SPC,    MO_RAIS, MO_LOWR, MO_MOUS
                                       //`--------------------------'  `--------------------------'
 
   ),
@@ -89,9 +76,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       KC_LCTL,    KC_A,    KC_O,    KC_E,    KC_U,    KC_I,                         KC_D,    KC_H,    KC_T,    KC_N,    KC_S,  KC_ENT,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      KC_LALT, KC_SCLN,    KC_Q,    KC_J,    KC_K,    KC_X,                         KC_B,    KC_M,    KC_W,    KC_V,    KC_Z, KC_SLSH,
+      KC_MOD1, KC_SCLN,    KC_Q,    KC_J,    KC_K,    KC_X,                         KC_B,    KC_M,    KC_W,    KC_V,    KC_Z, KC_SLSH,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                          KC_LGUI, KC_LSFT,  KC_SPC,    MO_RAIS, MO_LOWR, MO_MOUS
+                                          KC_MOD4, KC_LSFT,  KC_SPC,    MO_RAIS, MO_LOWR, MO_MOUS
                                       //`--------------------------'  `--------------------------'
 
   ),
@@ -102,9 +89,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       KC_LCTL,    KC_A,    KC_R,    KC_S,    KC_T,    KC_D,                         KC_H,    KC_N,    KC_E,    KC_I,    KC_O,  KC_ENT,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      KC_LALT,    KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,                         KC_K,    KC_M, KC_COMM,  KC_DOT, KC_SLSH, KC_CTAL,
+      KC_MOD1,    KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,                         KC_K,    KC_M, KC_COMM,  KC_DOT, KC_SLSH, KC_CTAL,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                          KC_LGUI, KC_LSFT,  KC_SPC,    MO_RAIS, MO_LOWR, MO_MOUS
+                                          KC_MOD4, KC_LSFT,  KC_SPC,    MO_RAIS, MO_LOWR, MO_MOUS
                                       //`--------------------------'  `--------------------------'
 
   ),
@@ -139,27 +126,15 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
        OS_CTL, XXXXXXX, KC_MS_L, KC_MS_D, KC_MS_R, XXXXXXX,                      XXXXXXX, KC_BTN1, KC_BTN3, KC_BTN2, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-       OS_ALT, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, KC_WH_D, XXXXXXX, XXXXXXX, OS_CTAL,
+      OS_MOD1, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, KC_WH_D, XXXXXXX, XXXXXXX, OS_CTAL,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                           OS_GUI,  OS_SFT,  OS_CLR,    XXXXXXX, XXXXXXX, XXXXXXX
-                                      //`--------------------------'  `--------------------------'
-  ),
-
-  [L_MOUSEMAC] = LAYOUT_split_3x6_3(
-  //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-      XXXXXXX, XXXXXXX, XXXXXXX, KC_MS_U, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, KC_WH_U, XXXXXXX, XXXXXXX, XXXXXXX,
-  //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-       OS_CTL, XXXXXXX, KC_MS_L, KC_MS_D, KC_MS_R, XXXXXXX,                      XXXXXXX, KC_BTN1, KC_BTN3, KC_BTN2, XXXXXXX, XXXXXXX,
-  //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-       OS_GUI, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, KC_WH_D, XXXXXXX, XXXXXXX, OS_CTAL,
-  //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
-                                           OS_ALT,  OS_SFT,  OS_CLR,    XXXXXXX, XXXXXXX, XXXXXXX
+                                          OS_MOD4,  OS_SFT,  OS_CLR,    XXXXXXX, XXXXXXX, XXXXXXX
                                       //`--------------------------'  `--------------------------'
   ),
 
   [L_ADJUST] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-      QK_BOOT, DF_QWRT, DF_QMAC, XXXXXXX, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+      QK_BOOT, MAC_OFF,  MAC_ON, XXXXXXX, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       DB_TOGG, XXXXXXX, XXXXXXX, DF_DVRK, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
@@ -169,6 +144,21 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                                       //`--------------------------'  `--------------------------'
   )
 };
+
+typedef struct {
+  bool macos_mode;
+} settings_t;
+
+settings_t settings = { false };
+
+void send_code(uint16_t keycode, keyrecord_t *record) {
+  if (record->event.pressed) {
+    register_code(keycode);
+  }
+  else {
+    unregister_code(keycode);
+  }
+}
 
 void handle_persistent_default_layer(uint16_t keycode) {
   uint8_t layer;
@@ -187,16 +177,60 @@ void handle_persistent_default_layer(uint16_t keycode) {
   }
 }
 
-void handle_oneshot_modifiers(uint16_t keycode) {
+bool handle_oneshot_modifiers(uint16_t keycode) {
   switch (keycode) {
   case OS_CLR:
     clear_oneshot_mods();
+    return false;
   }
+
+  return true;
+}
+
+bool handle_custom_modifiers(uint16_t keycode, keyrecord_t *record) {
+  uint16_t code = 0;
+
+  switch (keycode) {
+  case KC_MOD1:
+    code = settings.macos_mode ? KC_LGUI : KC_LALT;
+    break;
+  case KC_MOD4:
+    code = settings.macos_mode ? KC_LALT : KC_LGUI;
+    break;
+  }
+
+  if (code) {
+    send_code(code, record);
+    return false;
+  }
+
+  return true;
+}
+
+bool handle_settings_change(uint16_t keycode, keyrecord_t *record) {
+  if (!record->event.pressed) {
+    return true;
+  }
+
+  switch (keycode) {
+  case MAC_ON:
+    settings.macos_mode = true;
+    return false;
+  case MAC_OFF:
+    settings.macos_mode = false;
+    return false;
+  }
+
+  return true;
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-  handle_persistent_default_layer(keycode);
-  handle_oneshot_modifiers(keycode);
+  bool process_continued = true;
 
-  return true;
+  handle_persistent_default_layer(keycode);
+  process_continued &= handle_oneshot_modifiers(keycode);
+  process_continued &= handle_custom_modifiers(keycode, record);
+  process_continued &= handle_settings_change(keycode, record);
+
+  return process_continued;
 };
