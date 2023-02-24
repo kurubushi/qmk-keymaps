@@ -1,7 +1,7 @@
 /*
 Copyright 2019 @foostan
 Copyright 2020 Drashna Jaelre <@drashna>
-Copyright 2022 @kurubushi
+Copyright 2022-2023 @kurubushi
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
