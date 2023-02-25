@@ -362,3 +362,60 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
   return process_continued;
 };
+
+#ifdef OLED_ENABLE
+void oled_print_layer(void) {
+  oled_write_P(PSTR("Layer: "), false);
+  switch (get_highest_layer(layer_state)) {
+  case L_LOWER:
+    oled_write_ln_P(PSTR("Lower"), false);
+    break;
+  case L_RAISE:
+    oled_write_ln_P(PSTR("Raise"), false);
+    break;
+  case L_MOUSE:
+    oled_write_ln_P(PSTR("Mouse/Oneshot"), false);
+    break;
+  case L_ADJUST:
+    oled_write_ln_P(PSTR("Adjust"), false);
+    break;
+  default: // base layer
+    switch (get_highest_layer(default_layer_state)) {
+    case L_QWERTY:
+      oled_write_ln_P(PSTR("QWERTY"), false);
+      break;
+    case L_DVORAK:
+      oled_write_ln_P(PSTR("Dvorak"), false);
+      break;
+    case L_COLMAK:
+      oled_write_ln_P(PSTR("Colemak"), false);
+      break;
+    }
+  }
+}
+
+void oled_print_mode(void) {
+  oled_write_P(PSTR("Mode: "), false);
+
+  // print macOS mode
+  if (settings.macos_mode) {
+    oled_write_P(PSTR("macOS "), false);
+  }
+
+  // print JIS mode
+  if (settings.jis_mode) {
+    oled_write_P(PSTR("JIS "), false);
+  }
+
+  oled_write_ln_P(PSTR(""), false);
+}
+
+bool oled_task_user(void) {
+  if (is_keyboard_master()) {
+    oled_print_layer();
+    oled_print_mode();
+  }
+
+  return false;
+}
+#endif
