@@ -153,9 +153,10 @@ typedef struct {
   bool macos_mode;
   bool jis_mode;
   bool locked;
+  uint32_t keystroke_counter;
 } settings_t;
 
-settings_t settings = { false, false, false };
+settings_t settings = { false, false, false, 0 };
 
 void send_code(uint16_t keycode, keyrecord_t *record) {
   if (record->event.pressed) {
@@ -373,9 +374,18 @@ bool handle_locking(uint16_t keycode, keyrecord_t *record) {
   }
 }
 
+bool handle_counting_keystrokes(uint16_t keycode, keyrecord_t *record) {
+  if (record->event.pressed) {
+    settings.keystroke_counter += 1;
+  }
+
+  return true;
+}
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   return true &&
     handle_locking(keycode, record) &&
+    handle_counting_keystrokes(keycode, record) &&
     handle_persistent_default_layer(keycode, record) &&
     handle_oneshot_modifiers(keycode, record) &&
     handle_custom_modifiers(keycode, record) &&
@@ -455,13 +465,38 @@ void oled_print_modifiers(void) {
 
   oled_write_ln_P(PSTR(""), false);
 }
-  
+
+void oled_print_keystroke_counter(void) {
+  char digits[16], res[16];
+  char *digits_p = digits;
+  char *res_p = res;
+
+  uint16_t len = sprintf(digits_p, "%ld", settings.keystroke_counter);
+
+  char n = len%3 == 0 ? 3 : len%3;
+  snprintf(res_p, n+1, digits_p);
+  digits_p += n;
+  res_p += n;
+
+  while (digits_p < digits + len) {
+    res_p += sprintf(res_p, ",");
+
+    snprintf(res_p, 3+1, digits_p);
+    digits_p += 3;
+    res_p += 3;
+  }
+
+  oled_write_P(PSTR("Keystrokes: "), false);
+  oled_write_ln(res, false);
+}
+
 bool oled_task_user(void) {
   if (is_keyboard_master()) {
     oled_clear();
     oled_print_layer();
     oled_print_modifiers();
     oled_print_mode();
+    oled_print_keystroke_counter();
   }
 
   return false;
