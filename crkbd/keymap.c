@@ -395,16 +395,16 @@ void oled_print_layer(void) {
 }
 
 void oled_print_mode(void) {
-  oled_write_P(PSTR("Mode: "), false);
+  oled_write_P(PSTR("Mode:"), false);
 
   // print macOS mode
   if (settings.macos_mode) {
-    oled_write_P(PSTR("macOS "), false);
+    oled_write_P(PSTR(" macOS"), false);
   }
 
   // print JIS mode
   if (settings.jis_mode) {
-    oled_write_P(PSTR("JIS "), false);
+    oled_write_P(PSTR(" JIS"), false);
   }
 
   oled_write_ln_P(PSTR(""), false);
