@@ -55,6 +55,8 @@ enum custom_keycodes {
   MAC_OFF,
   JIS_ON,
   JIS_OFF,
+  LOCK,
+  UNLOCK,
   CUSTOM_KEYCODE_RANGE // the end of custom_keycodes
 };
 
@@ -140,7 +142,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       DB_TOGG, JIS_OFF,  JIS_ON, DF_DVRK, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-       EE_CLR, XXXXXXX, XXXXXXX, DF_CLMK, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+       EE_CLR,  UNLOCK,    LOCK, DF_CLMK, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
                                           XXXXXXX, KC_LSFT,  QK_RBT,    XXXXXXX, XXXXXXX, XXXXXXX
                                       //`--------------------------'  `--------------------------'
@@ -150,9 +152,10 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 typedef struct {
   bool macos_mode;
   bool jis_mode;
+  bool locked;
 } settings_t;
 
-settings_t settings = { false, false };
+settings_t settings = { false, false, false };
 
 void send_code(uint16_t keycode, keyrecord_t *record) {
   if (record->event.pressed) {
@@ -355,16 +358,29 @@ bool handle_jis_keycode(uint16_t keycode, keyrecord_t *record) {
   return true;
 }
 
+bool handle_locking(uint16_t keycode, keyrecord_t *record) {
+  switch (keycode) {
+  case LOCK:
+    settings.locked = true;
+    return false;
+  case UNLOCK:
+    settings.locked = false;
+    return false;
+  case QK_MOMENTARY ... QK_MOMENTARY_MAX:
+    return true;
+  default:
+    return settings.locked ? false : true;
+  }
+}
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-  bool process_continued = true;
-
-  process_continued &= handle_persistent_default_layer(keycode, record);
-  process_continued &= handle_oneshot_modifiers(keycode, record);
-  process_continued &= handle_custom_modifiers(keycode, record);
-  process_continued &= handle_settings_change(keycode, record);
-  process_continued &= handle_jis_keycode(keycode, record);
-
-  return process_continued;
+  return true &&
+    handle_locking(keycode, record) &&
+    handle_persistent_default_layer(keycode, record) &&
+    handle_oneshot_modifiers(keycode, record) &&
+    handle_custom_modifiers(keycode, record) &&
+    handle_settings_change(keycode, record) &&
+    handle_jis_keycode(keycode, record);
 };
 
 #ifdef OLED_ENABLE
@@ -409,6 +425,11 @@ void oled_print_mode(void) {
   // print JIS mode
   if (settings.jis_mode) {
     oled_write_P(PSTR(" JIS"), false);
+  }
+
+  // print locked
+  if (settings.locked) {
+    oled_write_P(PSTR(" Lock"), false);
   }
 
   oled_write_ln_P(PSTR(""), false);
