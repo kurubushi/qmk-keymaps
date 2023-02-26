@@ -221,6 +221,10 @@ bool handle_persistent_default_layer(uint16_t keycode, keyrecord_t *record) {
   return true;
 }
 
+void toggle_oneshot_mods(uint16_t mod_bits) {
+  set_oneshot_mods(get_oneshot_mods() ^ mod_bits);
+}
+
 bool handle_oneshot_modifiers(uint16_t keycode, keyrecord_t *record) {
   if (!record->event.pressed) {
     return true;
@@ -231,10 +235,10 @@ bool handle_oneshot_modifiers(uint16_t keycode, keyrecord_t *record) {
     clear_oneshot_mods();
     return false;
   case OS_MOD1:
-    set_oneshot_mods(MOD_BIT(get_custom_modifier(KC_MOD1)));
+    toggle_oneshot_mods(MOD_BIT(get_custom_modifier(KC_MOD1)));
     return false;
   case OS_MOD4:
-    set_oneshot_mods(MOD_BIT(get_custom_modifier(KC_MOD4)));
+    toggle_oneshot_mods(MOD_BIT(get_custom_modifier(KC_MOD4)));
     return false;
   }
 
