@@ -414,9 +414,32 @@ void oled_print_mode(void) {
   oled_write_ln_P(PSTR(""), false);
 }
 
+void oled_print_modifiers(void) {
+  uint16_t mods = get_mods() | get_oneshot_mods();
+
+  oled_write_P(PSTR("Modifiers:"), false);
+
+  if (mods & MOD_MASK_CTRL) {
+    oled_write_P(PSTR(" C"), false);
+  }
+  if (mods & MOD_MASK_SHIFT) {
+    oled_write_P(PSTR(" S"), false);
+  }
+  if (mods & MOD_MASK_ALT) {
+    oled_write_P(PSTR(" A"), false);
+  }
+  if (mods & MOD_MASK_GUI) {
+    oled_write_P(PSTR(" G"), false);
+  }
+
+  oled_write_ln_P(PSTR(""), false);
+}
+  
 bool oled_task_user(void) {
   if (is_keyboard_master()) {
+    oled_clear();
     oled_print_layer();
+    oled_print_modifiers();
     oled_print_mode();
   }
 
