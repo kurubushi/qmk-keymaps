@@ -382,6 +382,8 @@ bool handle_counting_keystrokes(uint16_t keycode, keyrecord_t *record) {
   return true;
 }
 
+// THE ENTRY POINT to handle key input.
+// if false is returned, qmk skips ordinary input processing.
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   return true &&
     handle_locking(keycode, record) &&
@@ -490,6 +492,7 @@ void oled_print_keystroke_counter(void) {
   oled_write_ln(res, false);
 }
 
+// THE ENTRY POINT to handle OLED display.
 bool oled_task_user(void) {
   if (is_keyboard_master()) {
     oled_clear();
