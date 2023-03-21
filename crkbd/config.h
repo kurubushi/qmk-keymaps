@@ -32,5 +32,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MOUSEKEY_WHEEL_MAX_SPEED     1
 #define MOUSEKEY_WHEEL_TIME_TO_MAX  20
 
+// EEPROM
+#define EECONFIG_USER_DATA_SIZE 3 // byte
+
 // 右手用
 //#define MASTER_RIGHT

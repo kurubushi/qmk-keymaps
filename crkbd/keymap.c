@@ -57,6 +57,7 @@ enum custom_keycodes {
   JIS_OFF,
   LOCK,
   UNLOCK,
+  EE_SAVE,
   CUSTOM_KEYCODE_RANGE // the end of custom_keycodes
 };
 
@@ -140,7 +141,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
       QK_BOOT, MAC_OFF,  MAC_ON, DF_QWRT, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      DB_TOGG, JIS_OFF,  JIS_ON, DF_DVRK, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+      EE_SAVE, JIS_OFF,  JIS_ON, DF_DVRK, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
        EE_CLR,  UNLOCK,    LOCK, DF_CLMK, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
@@ -159,13 +160,27 @@ typedef struct {
   bool locked;
 } settings_t;
 
-settings_t settings = { false, false, false };
+typedef union {
+  // NOTE: the size of bool is 1-byte.
+  // e.g. sizeof(struct { bool a; bool b; bool c; }) = 3
+  char raw[EECONFIG_USER_DATA_SIZE];
+  struct {
+    settings_t settings; // 3-byte
+  };
+} eeprom_t;
 
+settings_t settings = {};
 uint32_t keystroke_counter = 0;
 
 /****************************************
  * Utility functions
  ****************************************/
+
+void initialize_settings(void) {
+  settings.macos_mode = false;
+  settings.jis_mode = false;
+  settings.locked = false;
+}
 
 void send_code(uint16_t keycode, keyrecord_t *record) {
   if (record->event.pressed) {
@@ -212,6 +227,20 @@ uint16_t get_custom_modifier(uint16_t keycode) {
 
 void toggle_oneshot_mods(uint16_t mod_bits) {
   set_oneshot_mods(get_oneshot_mods() ^ mod_bits);
+}
+
+void load_eeprom(void) {
+  eeprom_t eeprom;
+
+  eeconfig_read_user_datablock(&eeprom.raw);
+  settings = eeprom.settings;
+}
+
+void save_eeprom(void) {
+  eeprom_t eeprom;
+
+  eeprom.settings = settings;
+  eeconfig_update_user_datablock(eeprom.raw);
 }
 
 /****************************************
@@ -387,12 +416,37 @@ bool handle_locking(uint16_t keycode, keyrecord_t *record) {
   }
 }
 
+bool handle_eeprom_keycode(uint16_t keycode, keyrecord_t *record) {
+  if (!record->event.pressed) {
+    return true;
+  }
+
+  switch (keycode) {
+  case EE_SAVE:
+    save_eeprom();
+    return false;
+  default:
+    return true;
+  }
+}
+
 bool handle_counting_keystrokes(uint16_t keycode, keyrecord_t *record) {
   if (record->event.pressed) {
     keystroke_counter += 1;
   }
 
   return true;
+}
+
+// keyboard_post_init_user is called at each boot.
+void keyboard_post_init_user(void) {
+  load_eeprom();
+}
+
+// eeconfig_init_user is called with pressed EE_CLR.
+void eeconfig_init_user(void) {
+  initialize_settings();
+  save_eeprom();
 }
 
 // THE ENTRY POINT to handle key input.
@@ -405,6 +459,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     handle_oneshot_modifiers(keycode, record) &&
     handle_custom_modifiers(keycode, record) &&
     handle_settings_change(keycode, record) &&
+    handle_eeprom_keycode(keycode, record) &&
     handle_jis_keycode(keycode, record);
 };
 
