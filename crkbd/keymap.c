@@ -149,14 +149,23 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   )
 };
 
+/****************************************
+ * Types and global variables definitions
+ ****************************************/
+
 typedef struct {
   bool macos_mode;
   bool jis_mode;
   bool locked;
-  uint32_t keystroke_counter;
 } settings_t;
 
-settings_t settings = { false, false, false, 0 };
+settings_t settings = { false, false, false };
+
+uint32_t keystroke_counter = 0;
+
+/****************************************
+ * Utility functions
+ ****************************************/
 
 void send_code(uint16_t keycode, keyrecord_t *record) {
   if (record->event.pressed) {
@@ -201,6 +210,14 @@ uint16_t get_custom_modifier(uint16_t keycode) {
   }
 }
 
+void toggle_oneshot_mods(uint16_t mod_bits) {
+  set_oneshot_mods(get_oneshot_mods() ^ mod_bits);
+}
+
+/****************************************
+ * Handlers for key input events
+ ****************************************/
+
 bool handle_persistent_default_layer(uint16_t keycode, keyrecord_t *record) {
   if (!record->event.pressed) {
     return true;
@@ -223,10 +240,6 @@ bool handle_persistent_default_layer(uint16_t keycode, keyrecord_t *record) {
   }
 
   return true;
-}
-
-void toggle_oneshot_mods(uint16_t mod_bits) {
-  set_oneshot_mods(get_oneshot_mods() ^ mod_bits);
 }
 
 bool handle_oneshot_modifiers(uint16_t keycode, keyrecord_t *record) {
@@ -376,7 +389,7 @@ bool handle_locking(uint16_t keycode, keyrecord_t *record) {
 
 bool handle_counting_keystrokes(uint16_t keycode, keyrecord_t *record) {
   if (record->event.pressed) {
-    settings.keystroke_counter += 1;
+    keystroke_counter += 1;
   }
 
   return true;
@@ -394,6 +407,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     handle_settings_change(keycode, record) &&
     handle_jis_keycode(keycode, record);
 };
+
+/****************************************
+ * OLED
+ ****************************************/
 
 #ifdef OLED_ENABLE
 void oled_print_layer(void) {
@@ -473,7 +490,7 @@ void oled_print_keystroke_counter(void) {
   char *digits_p = digits;
   char *res_p = res;
 
-  uint16_t len = sprintf(digits_p, "%ld", settings.keystroke_counter);
+  uint16_t len = sprintf(digits_p, "%ld", keystroke_counter);
 
   char n = len%3 == 0 ? 3 : len%3;
   snprintf(res_p, n+1, digits_p);
@@ -504,4 +521,4 @@ bool oled_task_user(void) {
 
   return false;
 }
-#endif
+#endif // OLED_ENABLE
