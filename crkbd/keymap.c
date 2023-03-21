@@ -166,8 +166,14 @@ typedef union {
   char raw[EECONFIG_USER_DATA_SIZE];
   struct {
     settings_t settings; // 3-byte
+    uint32_t keystroke_counter; // 4-byte
   };
 } eeprom_t;
+
+enum eeprom_contents {
+  EE_SETTINGS = 1 << 0,
+  EE_KEYSTROKE_COUNTER = 1 << 1,
+};
 
 settings_t settings = {};
 uint32_t keystroke_counter = 0;
@@ -234,12 +240,19 @@ void load_eeprom(void) {
 
   eeconfig_read_user_datablock(&eeprom.raw);
   settings = eeprom.settings;
+  keystroke_counter = eeprom.keystroke_counter;
 }
 
-void save_eeprom(void) {
+void save_eeprom(uint32_t contents) {
   eeprom_t eeprom;
 
-  eeprom.settings = settings;
+  eeconfig_read_user_datablock(&eeprom.raw);
+
+  if (contents & EE_SETTINGS)
+    eeprom.settings = settings;
+  if (contents & EE_KEYSTROKE_COUNTER)
+    eeprom.keystroke_counter = keystroke_counter;
+
   eeconfig_update_user_datablock(eeprom.raw);
 }
 
@@ -423,7 +436,10 @@ bool handle_eeprom_keycode(uint16_t keycode, keyrecord_t *record) {
 
   switch (keycode) {
   case EE_SAVE:
-    save_eeprom();
+    if (get_mods() & MOD_MASK_SHIFT)
+      save_eeprom(EE_SETTINGS | EE_KEYSTROKE_COUNTER);
+    else
+      save_eeprom(EE_SETTINGS);
     return false;
   default:
     return true;
@@ -446,7 +462,8 @@ void keyboard_post_init_user(void) {
 // eeconfig_init_user is called with pressed EE_CLR.
 void eeconfig_init_user(void) {
   initialize_settings();
-  save_eeprom();
+  keystroke_counter = 0;
+  save_eeprom(EE_SETTINGS | EE_KEYSTROKE_COUNTER);
 }
 
 // THE ENTRY POINT to handle key input.
