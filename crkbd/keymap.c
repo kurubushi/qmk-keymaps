@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // Layers
 enum layers {
     L_QWERTY,
+    L_QWETAP,
     L_DVORAK,
     L_COLMAK,
     L_LOWER,
@@ -38,12 +39,14 @@ enum layers {
 #define MO_MOUS MO(L_MOUSE)
 #define MO_AJST MO(L_ADJUST)
 #define DF_QWRT DF(L_QWERTY)
+#define DF_QTAP DF(L_QWETAP)
 #define DF_DVRK DF(L_DVORAK)
 #define DF_CLMK DF(L_COLMAK)
 #define KC_CTAL LCTL(KC_LALT)
 #define OS_CTL  OSM(MOD_LCTL)
 #define OS_SFT  OSM(MOD_LSFT)
 #define OS_CTAL OSM(MOD_LCTL | MOD_LALT)
+#define SANDS   MT(MOD_LSFT, KC_SPC)
 
 enum custom_keycodes {
   OS_CLR = SAFE_RANGE,
@@ -71,6 +74,19 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
       KC_MOD1,    KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,                         KC_N,    KC_M, KC_COMM,  KC_DOT, KC_SLSH, KC_CTAL,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
                                           KC_MOD4, KC_LSFT,  KC_SPC,    MO_RAIS, MO_LOWR, MO_MOUS
+                                      //`--------------------------'  `--------------------------'
+
+  ),
+
+  [L_QWETAP] = LAYOUT_split_3x6_3(
+  //,-----------------------------------------------------.                    ,-----------------------------------------------------.
+       KC_TAB,    KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,                         KC_Y,    KC_U,    KC_I,    KC_O,   KC_P,  KC_MINS,
+  //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
+      KC_LCTL,    KC_A,    KC_S,    KC_D,    KC_F,    KC_G,                         KC_H,    KC_J,    KC_K,    KC_L, KC_SCLN,  KC_ENT,
+  //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
+      KC_MOD1,    KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,                         KC_N,    KC_M, KC_COMM,  KC_DOT, KC_SLSH, KC_CTAL,
+  //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
+                                          KC_MOD4, KC_LSFT,   SANDS,    MO_RAIS, MO_LOWR, MO_MOUS
                                       //`--------------------------'  `--------------------------'
 
   ),
@@ -139,7 +155,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
   [L_ADJUST] = LAYOUT_split_3x6_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
-      QK_BOOT, MAC_OFF,  MAC_ON, DF_QWRT, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+      QK_BOOT, MAC_OFF,  MAC_ON, DF_QWRT, XXXXXXX, DF_QTAP,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       EE_SAVE, JIS_OFF,  JIS_ON, DF_DVRK, XXXXXXX, XXXXXXX,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
@@ -504,6 +520,9 @@ void oled_print_layer(void) {
     switch (get_highest_layer(default_layer_state)) {
     case L_QWERTY:
       oled_write_ln_P(PSTR("QWERTY"), false);
+      break;
+    case L_QWETAP:
+      oled_write_ln_P(PSTR("QWERTY Tap"), false);
       break;
     case L_DVORAK:
       oled_write_ln_P(PSTR("Dvorak"), false);
