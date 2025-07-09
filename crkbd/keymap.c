@@ -238,7 +238,7 @@ void toggle_oneshot_mods(uint16_t mod_bits) {
 void load_eeprom(void) {
   eeprom_t eeprom;
 
-  eeconfig_read_user_datablock(&eeprom.raw);
+  eeconfig_read_user_datablock(&eeprom.raw, 0, EECONFIG_USER_DATA_SIZE);
   settings = eeprom.settings;
   keystroke_counter = eeprom.keystroke_counter;
 }
@@ -246,14 +246,14 @@ void load_eeprom(void) {
 void save_eeprom(uint32_t contents) {
   eeprom_t eeprom;
 
-  eeconfig_read_user_datablock(&eeprom.raw);
+  eeconfig_read_user_datablock(&eeprom.raw, 0, EECONFIG_USER_DATA_SIZE);
 
   if (contents & EE_SETTINGS)
     eeprom.settings = settings;
   if (contents & EE_KEYSTROKE_COUNTER)
     eeprom.keystroke_counter = keystroke_counter;
 
-  eeconfig_update_user_datablock(eeprom.raw);
+  eeconfig_update_user_datablock(eeprom.raw, 0, EECONFIG_USER_DATA_SIZE);
 }
 
 /****************************************
