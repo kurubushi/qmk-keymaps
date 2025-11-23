@@ -177,6 +177,9 @@ enum eeprom_contents {
 
 settings_t settings = {};
 uint32_t keystroke_counter = 0;
+extern char key_name; // set by crkbd.c
+char keylog_base = ' ';
+uint16_t keylog_mods = 0;
 
 /****************************************
  * Utility functions
@@ -454,6 +457,15 @@ bool handle_counting_keystrokes(uint16_t keycode, keyrecord_t *record) {
   return true;
 }
 
+bool handle_keylog(uint16_t keycode, keyrecord_t *record) {
+  if (record->event.pressed) {
+    keylog_base = key_name;
+    keylog_mods = get_mods() | get_oneshot_mods();
+  }
+
+  return true;
+}
+
 // keyboard_post_init_user is called at each boot.
 void keyboard_post_init_user(void) {
   load_eeprom();
@@ -472,6 +484,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   return true &&
     handle_locking(keycode, record) &&
     handle_counting_keystrokes(keycode, record) &&
+    handle_keylog(keycode, record) &&
     handle_persistent_default_layer(keycode, record) &&
     handle_oneshot_modifiers(keycode, record) &&
     handle_custom_modifiers(keycode, record) &&
@@ -536,25 +549,28 @@ void oled_print_mode(void) {
   oled_write_ln_P(PSTR(""), false);
 }
 
-void oled_print_modifiers(void) {
-  uint16_t mods = get_mods() | get_oneshot_mods();
+void oled_print_input_key(void) {
+  uint16_t mods = get_mods() | get_oneshot_mods() | keylog_mods;
 
-  oled_write_P(PSTR("Modifiers:"), false);
+  oled_write_P(PSTR("Key: "), false);
 
+  // print mods keys (real-time + saved)
   if (mods & MOD_MASK_CTRL) {
-    oled_write_P(PSTR(" C"), false);
+    oled_write_P(PSTR("C-"), false);
   }
   if (mods & MOD_MASK_SHIFT) {
-    oled_write_P(PSTR(" S"), false);
+    oled_write_P(PSTR("S-"), false);
   }
   if (mods & MOD_MASK_ALT) {
-    oled_write_P(PSTR(" A"), false);
+    oled_write_P(PSTR("A-"), false);
   }
   if (mods & MOD_MASK_GUI) {
-    oled_write_P(PSTR(" G"), false);
+    oled_write_P(PSTR("G-"), false);
   }
 
-  oled_write_ln_P(PSTR(""), false);
+  // print base key
+  oled_write_char(keylog_base, false);
+  oled_advance_page(true);
 }
 
 void oled_print_keystroke_counter(void) {
@@ -586,7 +602,7 @@ bool oled_task_user(void) {
   if (is_keyboard_master()) {
     oled_clear();
     oled_print_layer();
-    oled_print_modifiers();
+    oled_print_input_key();
     oled_print_mode();
     oled_print_keystroke_counter();
   }
