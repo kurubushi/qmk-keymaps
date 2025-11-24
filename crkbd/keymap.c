@@ -166,17 +166,17 @@ typedef union {
   char raw[EECONFIG_USER_DATA_SIZE];
   struct {
     settings_t settings; // 3-byte
-    uint32_t keystroke_counter; // 4-byte
+    uint32_t types_counter; // 4-byte
   };
 } eeprom_t;
 
 enum eeprom_contents {
   EE_SETTINGS = 1 << 0,
-  EE_KEYSTROKE_COUNTER = 1 << 1,
+  EE_TYPES_COUNTER = 1 << 1,
 };
 
 settings_t settings = {};
-uint32_t keystroke_counter = 0;
+uint32_t types_counter = 0;
 extern char key_name; // set by crkbd.c
 char keylog_base = ' ';
 uint16_t keylog_mods = 0;
@@ -243,7 +243,7 @@ void load_eeprom(void) {
 
   eeconfig_read_user_datablock(&eeprom.raw, 0, EECONFIG_USER_DATA_SIZE);
   settings = eeprom.settings;
-  keystroke_counter = eeprom.keystroke_counter;
+  types_counter = eeprom.types_counter;
 }
 
 void save_eeprom(uint32_t contents) {
@@ -253,8 +253,8 @@ void save_eeprom(uint32_t contents) {
 
   if (contents & EE_SETTINGS)
     eeprom.settings = settings;
-  if (contents & EE_KEYSTROKE_COUNTER)
-    eeprom.keystroke_counter = keystroke_counter;
+  if (contents & EE_TYPES_COUNTER)
+    eeprom.types_counter = types_counter;
 
   eeconfig_update_user_datablock(eeprom.raw, 0, EECONFIG_USER_DATA_SIZE);
 }
@@ -440,7 +440,7 @@ bool handle_eeprom_keycode(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
   case EE_SAVE:
     if (get_mods() & MOD_MASK_SHIFT)
-      save_eeprom(EE_SETTINGS | EE_KEYSTROKE_COUNTER);
+      save_eeprom(EE_SETTINGS | EE_TYPES_COUNTER);
     else
       save_eeprom(EE_SETTINGS);
     return false;
@@ -449,9 +449,9 @@ bool handle_eeprom_keycode(uint16_t keycode, keyrecord_t *record) {
   }
 }
 
-bool handle_counting_keystrokes(uint16_t keycode, keyrecord_t *record) {
+bool handle_counting_typess(uint16_t keycode, keyrecord_t *record) {
   if (record->event.pressed) {
-    keystroke_counter += 1;
+    types_counter += 1;
   }
 
   return true;
@@ -474,8 +474,8 @@ void keyboard_post_init_user(void) {
 // eeconfig_init_user is called with pressed EE_CLR.
 void eeconfig_init_user(void) {
   initialize_settings();
-  keystroke_counter = 0;
-  save_eeprom(EE_SETTINGS | EE_KEYSTROKE_COUNTER);
+  types_counter = 0;
+  save_eeprom(EE_SETTINGS | EE_TYPES_COUNTER);
 }
 
 // THE ENTRY POINT to handle key input.
@@ -483,7 +483,7 @@ void eeconfig_init_user(void) {
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   return true &&
     handle_locking(keycode, record) &&
-    handle_counting_keystrokes(keycode, record) &&
+    handle_counting_typess(keycode, record) &&
     handle_keylog(keycode, record) &&
     handle_persistent_default_layer(keycode, record) &&
     handle_oneshot_modifiers(keycode, record) &&
@@ -573,12 +573,13 @@ void oled_print_input_key(void) {
   oled_advance_page(true);
 }
 
-void oled_print_keystroke_counter(void) {
+void oled_print_types_counter(void) {
+  // print types counter
   char digits[16], res[16];
   char *digits_p = digits;
   char *res_p = res;
 
-  uint16_t len = sprintf(digits_p, "%ld", keystroke_counter);
+  uint16_t len = sprintf(digits_p, "%ld", types_counter);
 
   char n = len%3 == 0 ? 3 : len%3;
   snprintf(res_p, n+1, digits_p);
@@ -593,8 +594,15 @@ void oled_print_keystroke_counter(void) {
     res_p += 3;
   }
 
-  oled_write_P(PSTR("Keystrokes: "), false);
-  oled_write_ln(res, false);
+  oled_write_P(PSTR("Types: "), false);
+  oled_write(res, false);
+
+  // print characters per second
+  // cps * 10 to get one decimal place (e.g. 35 means 3.5 c/s)
+  char cps_str[16];
+  uint16_t cps_x10 = get_current_wpm() * WPM_ESTIMATED_WORD_SIZE * 10 / 60;
+  sprintf(cps_str, " / %d.%d", cps_x10 / 10, cps_x10 % 10);
+  oled_write_ln(cps_str, false);
 }
 
 // THE ENTRY POINT to handle OLED display.
@@ -603,8 +611,8 @@ bool oled_task_user(void) {
     oled_clear();
     oled_print_layer();
     oled_print_input_key();
+    oled_print_types_counter();
     oled_print_mode();
-    oled_print_keystroke_counter();
   }
 
   return false;
